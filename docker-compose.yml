@@ -1,0 +1,42 @@
+version: "3"
+
+networks:
+  lw24-kelompok-6-network:
+    external: false
+
+services:
+  traefik-lw24-kelompok-6:
+    image: traefik:v2.9
+    container_name: traefik-lw24-kelompok-6
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    networks:
+      - lw24-kelompok-6-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "5004:80"
+
+  frontend-lw-kelompok:
+    image: 10.3.142.201:5000/5024211072-frontend:1
+    container_name: frontend-lw24-kelompok-6
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lw-kelompok-frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.services.lw-kelompok-frontend.loadbalancer.server.port=80"
+    networks:
+      - lw24-kelompok-6-network
+
+  backend-lw-kelompok:
+    image: 10.3.142.201:5000/5024211072-backend:1
+    container_name: backend-lw24-kelompok-6
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-lw-kelompok.rule=PathPrefix(`/api`)"
+      - "traefik.http.services.backend-lw-kelompok.loadbalancer.server.port=5004"
+    networks:
+      - lw24-kelompok-6-network
+    expose:
+      - "5004"
